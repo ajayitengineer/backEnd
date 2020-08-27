@@ -44,10 +44,6 @@ class StudentController extends Controller
     		]);
     	}
     	
-
-
-    	
-
     }
 
     public function list(){
@@ -60,12 +56,20 @@ class StudentController extends Controller
     }
 
     public function secondLargest(){
-
-    	$student = Student::OrderBy('pocket_money','desc')->offset(1)->limit(1)->get()->take(1);
+        
+        $students = Student::get();
+        if(count($students) > 1){
+    	$student = Student::OrderBy('pocket_money','desc')->offset(1)->limit(1)->get();
 
     	return response()->json([
     		'payload' => $student,
     		'message' => 'Student fetched successfully'
     	]);
+    }else {
+        return response()->json([
+            'payload' => $students,
+            'message' => 'Student fetched successfully'
+        ]);
+    }
     }
 }
