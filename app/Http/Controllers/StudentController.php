@@ -4,9 +4,18 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Student;
+use App\Http\Repositories\StudentRepository;
 
 class StudentController extends Controller
 {
+    protected $model;
+
+    public function __construct(Student $student)
+    {
+       $this->model = new StudentRepository($student);
+    }
+
+
     public function store(Request $request){
         
         $validatedData = $request->validate([
@@ -17,24 +26,13 @@ class StudentController extends Controller
         'password' => 'required',
         'city' => 'required',
         'state' => 'required',
-        'zip' => 'required',
+        'zip_code' => 'required',
         'country' => 'required',
         'pocket_money' => 'required'
     ]);
         
-    	$student = new Student();
-    	$student->first_name = $request->first_name;
-    	$student->last_name = $request->last_name;
-    	$student->email = $request->email;
-    	$student->password = bcrypt($request->password);
-    	$student->age = $request->age;
-    	$student->city = $request->city;
-    	$student->state = $request->state;
-    	$student->zip_code = $request->zip;
-    	$student->country = $request->country;
-    	$student->pocket_money = $request->pocket_money;
-
-    	if($student->save()){
+        $save = $this->model->create($request->only($this->model->getModel()->fillable));
+    	if($save){
     		return response()->json([
     		'message' => 'added successfully' 
     	]);
@@ -48,7 +46,7 @@ class StudentController extends Controller
 
     public function list(){
         
-        $students = Student::get(['first_name','id','last_name','email','pocket_money','city','state','country','age','zip_code']);
+        $students = $this->model->list();
     	return response()->json([
     		'payload' => $students,
     		'message' => 'student list successfully fetched'
@@ -57,19 +55,10 @@ class StudentController extends Controller
 
     public function secondLargest(){
         
-        $students = Student::get();
-        if(count($students) > 1){
-    	$student = Student::OrderBy('pocket_money','desc')->offset(1)->limit(1)->get();
-
-    	return response()->json([
-    		'payload' => $student,
-    		'message' => 'Student fetched successfully'
-    	]);
-    }else {
-        return response()->json([
-            'payload' => $students,
+       $allStudents = $this->model->secondLargest();
+       return response()->json([
+            'payload' => $allStudents,
             'message' => 'Student fetched successfully'
         ]);
-    }
     }
 }
